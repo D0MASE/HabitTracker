@@ -7,12 +7,15 @@ public class Goal
     public string? Description { get; private set; }
     private readonly List<Habit> _habits = new();
 
+    public int UserId { get; private set; }
+    public User User { get; private set; } = null!;
+
     public IReadOnlyCollection<Habit> Habits => _habits.AsReadOnly();
 
     public Goal(string name, string? description)
     {
         Name = CheckName(name);
-        Description = description;
+        Description = CheckDescription(description);
     }
 
     public void ChangeName(string name)
@@ -23,6 +26,11 @@ public class Goal
     public void AddHabit(Habit habit)
     {
         ArgumentNullException.ThrowIfNull(habit);
+        if (_habits.Contains(habit))
+        {
+            throw new ArgumentException("This habit is already added");
+        }
+        habit.AssignGoal(this);
         _habits.Add(habit);
     }
 
@@ -52,5 +60,15 @@ public class Goal
             return null;
         }
         return description.Trim();
+    }
+
+    internal void AssignUser(User user)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        if (User is not null)
+        {
+            throw new InvalidOperationException("User is already assigned to the goal");
+        }
+        User = user;
     }
 }

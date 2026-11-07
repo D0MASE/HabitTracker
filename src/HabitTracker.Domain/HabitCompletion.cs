@@ -5,10 +5,10 @@ public class HabitCompletion
     public int Id { get; init; }
     public DateOnly Date { get; init; }
 
-    public int HabitId { get; init; }
-    public Habit Habit { get; private set; }
+    public int HabitId { get; private set; }
+    public Habit Habit { get; private set; } = null!;
 
-    public HabitCompletion(DateOnly date, Habit habit)
+    internal HabitCompletion(DateOnly date, Habit habit)
     {
         Date = CheckDate(date);
         Habit = CheckHabit(habit);

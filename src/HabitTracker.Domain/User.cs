@@ -13,14 +13,9 @@ public class User
     public User(string email, string passwordHash, string nickName)
     {
         Email = NormalizeEmail(email);
-        PasswordHash = passwordHash;
-        NickName = nickName;
+        PasswordHash = CheckPasswordHash(passwordHash);
+        NickName = CheckNickName(nickName);
 
-        if (string.IsNullOrWhiteSpace(PasswordHash))
-            throw new ArgumentException("Password hash cannot be empty.");
-
-        if (string.IsNullOrWhiteSpace(NickName))
-            throw new ArgumentException("Nickname cannot be empty.");
     }
 
     public void ChangeEmail(string newEmail)
@@ -30,25 +25,29 @@ public class User
 
     public void ChangeNickName(string nickName)
     {
-        if (string.IsNullOrWhiteSpace(nickName))
-            throw new ArgumentException("Nickname cannot be empty.");
-
-        NickName = nickName.Trim();
+        NickName = CheckNickName(nickName);
     }
 
     public void AddGoal(Goal goal)
     {
         ArgumentNullException.ThrowIfNull(goal);
-
+        if (_goals.Contains(goal))
+        {
+            throw new ArgumentException("This goal is already added");
+        }
+        goal.AssignUser(this);
         _goals.Add(goal);
     }
 
     public void RemoveGoal(Goal goal)
     {
-        _goals.Remove(goal);
+        ArgumentNullException.ThrowIfNull(goal);
+
+        if (!_goals.Remove(goal))
+            throw new ArgumentException("Goal was not found.");
     }
 
-    public static string NormalizeEmail(string email)
+    private string NormalizeEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
@@ -60,5 +59,21 @@ public class User
             throw new ArgumentException("Invalid email format.");
 
         return email;
+    }
+
+    private string CheckNickName(string nickName)
+    {
+        if (string.IsNullOrWhiteSpace(nickName))
+            throw new ArgumentException("Nickname cannot be empty.");
+
+        return nickName.Trim();
+    }
+    private string CheckPasswordHash(string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            throw new ArgumentException("Password cannot be null or whitespace.");
+        }
+        return passwordHash;
     }
 }

@@ -5,20 +5,22 @@ public class Habit
     public int Id { get; init; }
     public string Name { get; private set; }
     public string? Description { get; private set; }
-    public double DailyReward { get; private set; }
-    public double? WeeklyReward { get; private set; }
+    public decimal DailyReward { get; private set; }
+    public decimal? WeeklyReward { get; private set; }
+
+    public Goal Goal { get; private set; } = null!;
+    public int GoalId { get; private set; }
 
     private readonly List<HabitCompletion> _habitCompletions = new();
 
     public IReadOnlyCollection<HabitCompletion> HabitCompletions => _habitCompletions.AsReadOnly();
 
-    public Habit(string name, string? description, double dailyReward, double? weeklyReward)
+    public Habit(string name, string? description, decimal dailyReward, decimal? weeklyReward)
     {
         Name = CheckName(name);
         Description = CheckDescription(description);
         DailyReward = CheckDailyReward(dailyReward);
         WeeklyReward = CheckWeeklyReward(weeklyReward);
-
     }
 
     private string CheckName(string name)
@@ -46,47 +48,49 @@ public class Habit
         Description = CheckDescription(description);
     }
 
-    private double CheckDailyReward(double dailyReward)
+    private decimal CheckDailyReward(decimal dailyReward)
     {
-        if (double.IsFinite(dailyReward))
-        {
-            if (double.IsNegative(dailyReward))
-                throw new ArgumentException("Daily Reward can't be negative");
-            return dailyReward;
-        }
-        throw new ArgumentException("Daily Reward has to be finite");
 
+        if (decimal.IsNegative(dailyReward))
+            throw new ArgumentException("Daily Reward can't be negative");
+        return dailyReward;
     }
 
-    public void ChangeDailyReward(double dailyReward)
+    public void ChangeDailyReward(decimal dailyReward)
     {
         DailyReward = CheckDailyReward(dailyReward);
     }
 
-    private double? CheckWeeklyReward(double? weeklyReward)
+    private decimal? CheckWeeklyReward(decimal? weeklyReward)
     {
         if (weeklyReward.HasValue)
         {
-            if (!double.IsFinite(weeklyReward.Value))
-                throw new ArgumentException("Weekly Reward has to be finite");
-            if (double.IsNegative(weeklyReward.Value))
+            if (decimal.IsNegative(weeklyReward.Value))
                 throw new ArgumentException("Weekly Reward can't be negative");
             return weeklyReward;
         }
         return null;
     }
 
-    public void ChangeWeeklyReward(double? weeklyReward)
+    public void ChangeWeeklyReward(decimal? weeklyReward)
     {
         WeeklyReward = CheckWeeklyReward(weeklyReward);
     }
 
-    public void AddCompletion (HabitCompletion habitCompletion)
+    public void AddCompletion(DateOnly date)
     {
-        ArgumentNullException.ThrowIfNull(habitCompletion);
-        if(_habitCompletions.Any(competion => competion.Date.Equals(habitCompletion.Date)))
+        if (_habitCompletions.Any(competion => competion.Date.Equals(date)))
             throw new ArgumentException("This Habit was already completed on the selected day");
-        _habitCompletions.Add(habitCompletion);
+        _habitCompletions.Add(new HabitCompletion(date, this));
     }
 
+    internal void AssignGoal(Goal goal)
+    {
+        ArgumentNullException.ThrowIfNull(goal);
+        if (Goal is not null)
+        {
+            throw new InvalidOperationException("Habit is already assigned to the goal");
+        }
+        Goal = goal;
+    }
 }
